@@ -10,9 +10,13 @@ public class Mazegenerator : MonoBehaviour
     [SerializeField] private int _mazedepth;
 
     private MazeCell[,] _mazeGrid;
-    IEnumerator Start()
+    void Start()
     {
+        StartCoroutine("StartMaze");
+    }
 
+    private IEnumerator StartMaze()
+    {
         _mazeGrid = new MazeCell[_mazewidth, _mazedepth];
         for (int x = 0; x < _mazewidth; x++)
         {
@@ -21,79 +25,77 @@ public class Mazegenerator : MonoBehaviour
                 _mazeGrid[x, z] = Instantiate(_cellprefab, new Vector3(x, 0, z), Quaternion.identity);
             }
         }
-
-        yield return generatemaze(null, _mazeGrid[0, 0]);//--actually read this one--there is not previous and the current is the starting point-should turn this into a variable later so i can make it movebale
+        //yields-- so this should be the last to be called 
+        yield return GenerateMaze(null, _mazeGrid[0, 0]);//--actually read this one--there is not previous and the current is the starting point-should turn this into a variable later so i can make it movebale
     }
 
-
-
-    private IEnumerator generatemaze(MazeCell previous, MazeCell current)
+    private IEnumerator GenerateMaze(MazeCell previous, MazeCell current)
     {
         current.Visit();//set starting pointed as visited so you dont go back
-        clear(previous, current);//to carve out inital walls and get going
+        Clear(previous, current);//to carve out inital walls and get going-- the null is always just 0 for the current to always be larger than and the "previous" just returns nothing
 
         yield return new WaitForSeconds(0.05f);//this is not nessary but means  i can actually see the maze generate
 
         MazeCell chosenCell;
         do
         {
-            chosenCell = FindnextCell(current);
+            chosenCell = FindNextCell(current);
             if (chosenCell != null) //if there is an unvisited cell
             {
-                yield return generatemaze(current, chosenCell); //recursion,calls itself until no unvisited cells left(hopefully)
+                yield return GenerateMaze(current, chosenCell); //recursion,calls itself until no unvisited cells left(hopefully)
             }
         } while (chosenCell != null);//stops after no cells left in its current radius
     }
 
-    private MazeCell FindnextCell(MazeCell currentCell)//returns only 1 cell randomly
+    private MazeCell FindNextCell(MazeCell currentCell)//returns only 1 cell randomly
     {
 
         //use nextcells to find the neighboroughing cells to the current cell and put them in a collection
-        IEnumerable<MazeCell> unvisitedCells = nextCells(currentCell);//idk why ienumerable works here and not list
+        IEnumerable<MazeCell> unvisitedCells = NextCells(currentCell);//idk why ienumerable works here and not list
 
         //returns a random cell in that collection of unvisited cells 
         return unvisitedCells.OrderBy(placeholder => Random.Range(1, 10)).FirstOrDefault();//returns null if not any, need firstorderdefault or this thing breaks
     }
 
-    private IEnumerable<MazeCell> nextCells(MazeCell currentCell)//finds what the next cell is and only if the cell isnt visited---returns a collection
+    private IEnumerable<MazeCell> NextCells(MazeCell currentCell)//finds what the next cell is and only if the cell isnt visited---returns a collection
     {
         int x = (int)currentCell.transform.position.x;//for some reason they need to be explictily casted 
         int z = (int)currentCell.transform.position.z;
 
         if (x + 1 < _mazewidth) //if in bounds
         {
-            MazeCell cell_to_the_right = _mazeGrid[x + 1, z];
-            if (cell_to_the_right.Isvisited == false)
+            MazeCell cellToTheRight = _mazeGrid[x + 1, z];
+            if (cellToTheRight.Isvisited == false)
             {
-                yield return cell_to_the_right;
+                yield return cellToTheRight;
             }
         }
         if (x - 1 >= 0)//from 0 because that is the min start point that the width depends on 
         {
-            MazeCell cell_to_the_left = _mazeGrid[x-1,z];
-            if (cell_to_the_left.Isvisited == false)
+            MazeCell cellToTheLeft = _mazeGrid[x-1,z];
+            if (cellToTheLeft.Isvisited == false)
             {
-                yield return cell_to_the_left;
+                yield return cellToTheLeft;
             }
         }
         if (z + 1 < _mazedepth) //if in bounds
         {
-            MazeCell cell_to_the_front = _mazeGrid[x, z+1];
-            if (cell_to_the_front.Isvisited == false)
+            MazeCell cellToTheFront = _mazeGrid[x, z+1];
+            if (cellToTheFront.Isvisited == false)
             {
-                yield return cell_to_the_front;
+                yield return cellToTheFront;
             }
         }
         if (z - 1>=0) //if in bounds from back
         {
-            MazeCell cell_to_the_back = _mazeGrid[x, z - 1];
-            if (cell_to_the_back.Isvisited == false)
+            MazeCell cellToTheBack = _mazeGrid[x, z - 1];
+            if (cellToTheBack.Isvisited == false)
             {
-                yield return cell_to_the_back;
+                yield return cellToTheBack;
             }
         }
     }
-    private void clear(MazeCell previous, MazeCell current)//clearing walls to carve out maze based on direction
+    private void Clear(MazeCell previous, MazeCell current)//clearing walls to carve out maze based on direction
     {
         if (previous == null)
         {
