@@ -12,7 +12,8 @@ public class Mazegenerator : MonoBehaviour
     private MazeCell[,] _mazeGrid;
     void Start()
     {
-        StartCoroutine("StartMaze");
+         IEnumerator MazeCoroutine = StartMaze();
+         StartCoroutine(MazeCoroutine);
     }
 
     private IEnumerator StartMaze()
@@ -45,6 +46,7 @@ public class Mazegenerator : MonoBehaviour
                 yield return GenerateMaze(current, chosenCell); //recursion,calls itself until no unvisited cells left(hopefully)
             }
         } while (chosenCell != null);//stops after no cells left in its current radius
+        print("done");
     }
 
     private MazeCell FindNextCell(MazeCell currentCell)//returns only 1 cell randomly
@@ -128,6 +130,6 @@ public class Mazegenerator : MonoBehaviour
     }
     void Update()
     {
-
+        
     }
 }
